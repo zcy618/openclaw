@@ -9,12 +9,14 @@
 """
 
 import asyncio
-import websockets
-import sys
+import base64
+import json
 import os
-import time
+import sys
+import websockets
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from test_device_client import TestDeviceClient
 
 class StepByStepTest:
@@ -57,8 +59,6 @@ class StepByStepTest:
     
     async def custom_receive_messages(self):
         """接收消息：音频只做内存累积，信号才打印"""
-        import json
-        import base64
         try:
             async for message in self.client.websocket:
                 msg = json.loads(message)

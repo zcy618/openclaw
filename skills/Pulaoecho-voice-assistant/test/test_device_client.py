@@ -6,17 +6,17 @@
 """
 
 import asyncio
-import ssl
-import websockets
-import json
 import base64
+import json
+import os
+import ssl
+import sys
 import time
 import wave
-import sys
-import os
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import websockets
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 def aes_encrypt(plaintext: str) -> str:

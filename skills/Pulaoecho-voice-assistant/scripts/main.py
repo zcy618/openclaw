@@ -6,16 +6,16 @@
 """
 
 import asyncio
-import threading
-import signal
-import ssl
-import sys
 import json
 import logging
 import os
+import signal
+import ssl
+import sys
+import threading
 from audio_bridge import AudioBridge
-from websocket_audio_server import WebSocketAudioServer
 from voice_assistant_remote import VoiceAssistantRemote
+from websocket_audio_server import WebSocketAudioServer
 
 # ─── 加载配置文件 ────────────────────────────────────────────────────────────────
 _CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config.json")

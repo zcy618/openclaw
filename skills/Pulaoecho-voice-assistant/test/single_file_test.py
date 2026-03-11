@@ -6,17 +6,17 @@
 """
 
 import asyncio
-import ssl
-import websockets
-import json
 import base64
-import sys
+import json
 import os
+import ssl
+import sys
 import time
 import wave
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import websockets
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from test_device_client import TestDeviceClient

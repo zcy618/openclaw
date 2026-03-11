@@ -4,17 +4,17 @@
 远程音频设备语音助手
 基于local-voice-assistant，适配AudioBridge架构
 """
-import sys
-import os
-import time
-import json
-import threading
-import queue
-import uuid
-import traceback
-import re
 import io
+import json
 import logging
+import os
+import queue
+import re
+import sys
+import threading
+import time
+import traceback
+import uuid
 
 sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
