@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from pydub import AudioSegment
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from test_device_client import TestDeviceClient
+from device_client import TestDeviceClient
 
 SERVER_URL = "wss://localhost:18181/v1/audio/stream"
 CHUNK_SIZE = 2560   # 80ms @ 16kHz 16-bit mono
