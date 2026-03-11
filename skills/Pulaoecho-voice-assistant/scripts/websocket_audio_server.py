@@ -16,9 +16,9 @@ import logging
 import os
 import ssl
 import time
-import websockets
 from typing import Dict, Optional
 
+import websockets
 from audio_bridge import AudioBridge
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding

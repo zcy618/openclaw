@@ -7,16 +7,19 @@
 
 import asyncio
 import base64
+import io
 import json
 import os
 import ssl
 import sys
 import time
 import wave
+
 import websockets
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from pydub import AudioSegment
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from test_device_client import TestDeviceClient
@@ -183,8 +186,6 @@ class SingleFileTest:
         print(f"WAV: {ch}ch {sw*8}bit {fr}Hz")
         if fr != 16000 or ch != 1 or sw != 2:
             print("Converting to 16kHz mono 16-bit...")
-            from pydub import AudioSegment
-            import io
             audio = AudioSegment.from_wav(path)
             audio = audio.set_frame_rate(16000).set_channels(1).set_sample_width(2)
             buf = io.BytesIO()
