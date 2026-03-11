@@ -18,7 +18,7 @@ import time
 import websockets
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from test_device_client import TestDeviceClient
+from test_device_client import TestDeviceClient  # noqa: I001
 
 class StepByStepTest:
     """分步测试"""
