@@ -1,0 +1,21 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 18181,
+    "tls": {
+      "enabled": true,
+      "certFile": "./certs/server.crt",
+      "keyFile": "./certs/server.key"
+    },
+    "password": "pulaoecho_secure_password_2026"
+  },
+  "openclaw": {
+    "url": "ws://127.0.0.1:18789",
+    "tokenPath": "~/.openclaw/openclaw.json"
+  },
+  "wakeWords": ["hi claw", "hey claw", "hi google", "hey google", "ok google"],
+  "logging": {
+    "level": "INFO",
+    "file": "./pulaoecho-voice-assistant.log"
+  }
+}
