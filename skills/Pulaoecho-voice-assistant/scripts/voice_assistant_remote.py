@@ -177,10 +177,10 @@ class VoiceAssistantRemote:
 
     @staticmethod
     def _load_token(token_path: str) -> str:
-        """从 tokenPath 文件读取 token；失败时返回硬编码默认值。"""
-        _default = "ce7be8ce4aa8f393568d7e38612f28b22264e78148df8865"
+        """从 tokenPath 文件读取 token；失败时抛出异常。"""
         if not token_path:
-            return _default
+            raise ValueError("Token path not configured. Please set 'tokenPath' in config.json")
+        
         path = os.path.expanduser(token_path)
         try:
             with open(path, encoding="utf-8") as f:
@@ -195,11 +195,12 @@ class VoiceAssistantRemote:
             if token:
                 logger.info(f"[Init] Token loaded from {path}: {token[:8]}...")
                 return token
+            else:
+                raise ValueError(f"No token found in {path}. Please check your token file format.")
         except FileNotFoundError:
-            logger.warning(f"[Init] tokenPath not found: {path}, using default token")
+            raise FileNotFoundError(f"Token file not found: {path}. Please ensure the file exists.")
         except Exception as e:
-            logger.warning(f"[Init] Failed to read token from {path}: {e}, using default token")
-        return _default
+            raise RuntimeError(f"Failed to read token from {path}: {e}")
 
     def _increment_generation(self):
         """递增generation，表示新的唤醒"""
