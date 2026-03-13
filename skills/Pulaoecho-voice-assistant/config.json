@@ -14,18 +14,28 @@
     "tokenPath": "~/.openclaw/openclaw.json"
   },
   "aliyunASR": {
-    "apiKey": "",
+    "apiKey": "your-api-key",
     "model": "qwen3-asr-flash",
     "language": "en"
   },
+  "sherpaONNX": {
+    "modelDir": "your-local-path",
+    "encoder": "distil-large-v3.5-encoder.int8.onnx",
+    "decoder": "distil-large-v3.5-decoder.int8.onnx",
+    "tokens": "distil-large-v3.5-tokens.txt",
+    "language": "en"
+  },
+  "asrEngine": "sherpa-onnx",
   "wakeWords": [
-    "hi claw",
+    "Hey, OpenCloud",
     "hey claw",
     "hi google",
     "hey google",
     "ok google",
     "Okay google",
-    "Hey, Google."
+    "Hey, Google.",
+    "Hi, OpenCloud",
+    "Hey, open Chrome"
   ],
   "logging": {
     "level": "INFO",

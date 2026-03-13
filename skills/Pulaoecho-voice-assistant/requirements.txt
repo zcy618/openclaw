@@ -5,3 +5,4 @@ websocket-client>=1.6.0
 pydub>=0.25.1
 webrtcvad-wheels>=2.0.10
 cryptography>=40.0.0
+sherpa-onnx>=1.14.0

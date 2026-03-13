@@ -15,6 +15,7 @@ import threading
 import time
 import traceback
 import uuid
+from typing import Optional, List
 
 sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
@@ -31,6 +32,14 @@ try:
 except ImportError:
     has_aliyun_asr = False
     logger.warning("AliyunASREngine not found.")
+
+# 导入Sherpa-ONNX语音识别引擎
+try:
+    from sherpaonnxasrengine import SherpaONNXASREngine
+    has_sherpa_onnx = True
+except ImportError:
+    has_sherpa_onnx = False
+    logger.warning("SherpaONNXASREngine not found.")
 
 # 尝试导入websocket库
 try:
@@ -62,27 +71,34 @@ INTERRUPT_SIGNAL = "__INTERRUPT__"
 
 
 class SpeechRecognizer:
-    """异步语音识别器（使用阿里云ASR）。
-
-    每次调用 submit() 传入一段 PCM，立刻返回 req_id。
-    识别完成后在独立线程里调用 on_result(req_id, text_or_None)。
-    """
-
-    SAMPLE_RATE  = 16000
-    SAMPLE_WIDTH = 2
-
-    def __init__(self, api_key: str, model: str = "qwen3-asr-flash", hotwords: list = None, language: str = "auto"):
+    """统一的语音识别接口，支持阿里云ASR和Sherpa-ONNX"""
+    
+    def __init__(self, api_key: str = None, model: str = None, hotwords: Optional[List[str]] = None, 
+                 language: str = "en", asr_engine: str = "aliyun", model_dir: str = None,
+                 encoder: str = "encoder.onnx", decoder: str = "decoder.onnx", tokens: str = "tokens.txt"):
         """初始化语音识别器
         
         Args:
-            api_key: 阿里云API密钥
-            model: 使用的模型名称
-            hotwords: 热词列表，用于提升唤醒词识别率
-            language: 识别语言 (auto/en/zh 等)
+            api_key: 阿里云API密钥（仅用于aliyun引擎）
+            model: 阿里云模型名称（仅用于aliyun引擎）
+            hotwords: 热词列表
+            language: 识别语言
+            asr_engine: 识别引擎，"aliyun" 或 "sherpa-onnx"
+            model_dir: Sherpa-ONNX模型目录（仅用于sherpa-onnx引擎）
+            encoder: Sherpa-ONNX encoder文件名
+            decoder: Sherpa-ONNX decoder文件名
+            tokens: Sherpa-ONNX tokens文件名
         """
-        self._engine = AliyunASREngine(api_key, model, hotwords, language) if has_aliyun_asr else None
-        if not has_aliyun_asr:
-            logger.error("AliyunASREngine not available")
+        self.asr_engine = asr_engine
+        
+        if asr_engine == "sherpa-onnx":
+            self._engine = SherpaONNXASREngine(model_dir, hotwords, language, encoder, decoder, tokens) if has_sherpa_onnx else None
+            if not has_sherpa_onnx:
+                logger.error("SherpaONNXASREngine not available")
+        else:  # aliyun
+            self._engine = AliyunASREngine(api_key, model, hotwords, language) if has_aliyun_asr else None
+            if not has_aliyun_asr:
+                logger.error("AliyunASREngine not available")
 
     def submit(self, pcm: bytes, req_id: str, on_result):
         """提交一段 PCM 进行识别。立刻返回，结果异步回调。
@@ -121,6 +137,14 @@ class VoiceAssistantRemote:
         asr_model = _asr.get("model", "qwen3-asr-flash")
         asr_language = _asr.get("language", "auto")  # auto/en/zh
         
+        # Sherpa-ONNX配置
+        _sherpa = cfg.get("sherpaONNX", {})
+        asr_engine = cfg.get("asrEngine", "aliyun")  # aliyun/sherpa-onnx
+        model_dir = _sherpa.get("modelDir", "")
+        sherpa_encoder = _sherpa.get("encoder", "encoder.onnx")
+        sherpa_decoder = _sherpa.get("decoder", "decoder.onnx")
+        sherpa_tokens = _sherpa.get("tokens", "tokens.txt")
+        
         # 线程间通信队列
         self.task_queue = queue.Queue()      # 录音线程 → 执行线程
         self.speak_queue = queue.Queue()     # 执行线程 → TTS线程
@@ -133,8 +157,10 @@ class VoiceAssistantRemote:
         # 全局停止
         self.stop_flag = threading.Event()
         
-        # 异步语音识别器（使用阿里云ASR，传入唤醒词作为热词）
-        self._asr = SpeechRecognizer(api_key=asr_api_key, model=asr_model, hotwords=self.wake_words, language=asr_language)
+        # 异步语音识别器（支持阿里云ASR和Sherpa-ONNX，传入唤醒词作为热词）
+        self._asr = SpeechRecognizer(api_key=asr_api_key, model=asr_model, hotwords=self.wake_words, 
+                                    language=asr_language, asr_engine=asr_engine, model_dir=model_dir,
+                                    encoder=sherpa_encoder, decoder=sherpa_decoder, tokens=sherpa_tokens)
         # 识别结果回传队列：(req_id, text_or_None)
         self._asr_result_q: queue.Queue = queue.Queue()
         
@@ -143,7 +169,10 @@ class VoiceAssistantRemote:
         self.AWAKENED_TIMEOUT = 30  # 唤醒状态超时时间（秒）
         
         logger.info(f"[Init] ws_url={self.ws_url}, wake_words={self.wake_words}")
-        logger.info(f"[Init] AliyunASR: model={asr_model}, language={asr_language}, hotwords={self.wake_words}")
+        if asr_engine == "sherpa-onnx":
+            logger.info(f"[Init] Sherpa-ONNX: model_dir={model_dir}, language={asr_language}, hotwords={self.wake_words}")
+        else:
+            logger.info(f"[Init] AliyunASR: model={asr_model}, language={asr_language}, hotwords={self.wake_words}")
         logger.info("[Init] Remote voice assistant initialized")
 
     @staticmethod
@@ -190,8 +219,8 @@ class VoiceAssistantRemote:
         """录音线程：VAD 切割语音片段，提交 SpeechRecognizer 异步识别，永不阻塞。"""
         logger.info("[Recording] Thread started (remote audio mode)")
 
-        if not has_aliyun_asr:
-            logger.error("[Recording] AliyunASR not available")
+        if not (has_aliyun_asr or has_sherpa_onnx):
+            logger.error("[Recording] No ASR engine available")
             return
 
         # ── VAD 配置 ──────────────────────────────────────────────────────
@@ -527,6 +556,9 @@ class VoiceAssistantRemote:
                     msg_type = msg.get("type")
                     msg_id = msg.get("id")
                     
+                    # 记录所有收到的消息类型
+                    logger.debug(f"[OpenClaw] Received message: type={msg_type}, id={msg_id[:8] if msg_id else 'None'}")
+                    
                     # 跳过心跳消息
                     if msg_type == "heartbeat":
                         logger.debug("[OpenClaw] Received heartbeat, skipping")
@@ -567,7 +599,11 @@ class VoiceAssistantRemote:
                     else:
                         # 其他消息类型，记录但不处理
                         if msg_type:
-                            logger.debug(f"[OpenClaw] Ignoring message type: {msg_type}")
+                            logger.debug(f"[OpenClaw] Ignoring message: type={msg_type}, id={msg_id}, expected_id={agent_req_id[:8]}")
+                            # 如果是 event 类型，记录 event 名称
+                            if msg_type == "event":
+                                event_name = msg.get("event")
+                                logger.debug(f"[OpenClaw] Event: {event_name}")
                             
                 except websocket.WebSocketTimeoutException:
                     continue

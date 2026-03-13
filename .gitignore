@@ -123,3 +123,6 @@ dist/protocol.schema.json
 # Synthing
 **/.stfolder/
 .dev-state
+skills/Pulaoecho-voice-assistant/config.json.example
+skills/Pulaoecho-voice-assistant/pulaoecho-voice-assistant.log
+skills/Pulaoecho-voice-assistant/certs
