@@ -7,7 +7,7 @@
       "certFile": "./certs/server.crt",
       "keyFile": "./certs/server.key"
     },
-    "password": "pulaoecho_secure_password_2026"
+    "password": "your password"
   },
   "openclaw": {
     "url": "ws://127.0.0.1:18789",

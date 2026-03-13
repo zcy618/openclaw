@@ -110,7 +110,7 @@ class AudioDevice:
 class WebSocketAudioServer:
     """WebSocket音频服务器"""
     
-    def __init__(self, host: str = "0.0.0.0", port: int = 18181, ssl_context: Optional[ssl.SSLContext] = None, password: str = "pulaoecho_secure_password_2026"):
+    def __init__(self, host: str = "0.0.0.0", port: int = 18181, ssl_context: Optional[ssl.SSLContext] = None, password: str = "your password"):
         self.host = host
         self.port = port
         self.ssl_context = ssl_context
